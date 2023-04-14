@@ -11,13 +11,24 @@ main =
             args:  [ "-al" ] 
         }
 
+    okStr : List U8 -> Str
+    okStr = \bytes ->
+        when Str.fromUtf8 bytes is 
+            Ok str -> 
+                str
+
+            Err _ -> 
+                "Invalid bytes"
+
     Task.attempt (Command.run cmd) \result -> 
         when result is
-            Ok s -> 
-                _ <- await (Stdout.line s)
+            Ok bytes ->
+                str = okStr bytes
+                _ <- await (Stdout.line str)
                 Process.exit 0
 
             Err (SpawnFailed err) -> 
-                Stderr.line err
+                str = Str.fromUtf8 err |> Result.withDefault "gnark"
+                Stderr.line str
    
     

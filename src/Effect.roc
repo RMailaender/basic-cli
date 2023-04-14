@@ -68,4 +68,4 @@ tcpReadExactly : Nat, InternalTcp.Stream -> Effect InternalTcp.ReadExactlyResult
 tcpReadUntil : U8, InternalTcp.Stream -> Effect InternalTcp.ReadResult
 tcpWrite : List U8, InternalTcp.Stream -> Effect InternalTcp.WriteResult
 
-commandRun : Str, List Str -> Effect ( Result Str Str )
+commandRun : Str, List Str -> Effect ( Result (List U8) (List U8) )

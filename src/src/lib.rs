@@ -728,11 +728,13 @@ fn to_tcp_stream_err(err: std::io::Error) -> tcp_glue::StreamErr {
     }
 }
 
+// TODO impl current_dir
+// TODO impl envs
 #[no_mangle]
 pub extern "C" fn roc_fx_commandRun(
     name: &RocStr,
     args: &RocList<RocStr>,
-) -> RocResult<RocStr, RocStr> {
+) -> RocResult<RocList<u8>, RocList<u8>> {
     let name = name.as_str().to_string();
 
     let mut cmd = Command::new(name);
@@ -741,21 +743,20 @@ pub extern "C" fn roc_fx_commandRun(
         cmd.arg(arg);
     }
 
+    //  FIXME this seems to cause a segmentation fault. no good
     match cmd.output() {
         Ok(out) => {
             if out.status.success() {
-                let str = String::from_utf8(out.stdout.clone()).unwrap();
-                RocResult::ok(RocStr::from(str.as_str()))
+                RocResult::ok(RocList::from(out.stdout.as_slice()))
             } else {
-                let str = String::from_utf8(out.stderr.clone()).unwrap();
-                RocResult::err(RocStr::from(str.as_str()))
+                RocResult::err(RocList::from(out.stderr.as_slice()))
             }
         }
         Err(err) => RocResult::err(to_command_run_err(err)),
     }
 }
 
-fn to_command_run_err(err: std::io::Error) -> RocStr {
+fn to_command_run_err(err: std::io::Error) -> RocList<u8> {
     let kind = err.kind();
     let error_str = match kind {
         ErrorKind::NotFound => "not found",
@@ -769,5 +770,5 @@ fn to_command_run_err(err: std::io::Error) -> RocStr {
         _ => "unrecognized error",
     };
 
-    RocStr::from(error_str)
+    RocList::from(error_str.to_string().as_bytes())
 }

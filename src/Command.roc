@@ -14,6 +14,13 @@ interface Command
         Path.{ Path },
     ]
 
+# TODO Figure out how to roc glue
+# TODO should args and envs be an opaque type? 
+# TODO  impl a way to update all props. meybe there is a way 
+#       to work with an optiona record instead of writing a function for each prop
+# TODO impl clear and delete envs 
+# TODO Write Docs
+
 WorkingDirectory : [CurrentDir, DifferenDir Path]
 
 
@@ -47,7 +54,7 @@ display : Command -> Str
 display = \@Command{ name, args } -> 
     List.walk args (name) (\state, elem -> "\(state) \(elem)")
 
-run : Command -> Task Str [SpawnFailed Str]
+run : Command -> Task (List U8) [SpawnFailed (List U8)]
 run = \@Command{ name,args } ->  
     name
     |> Effect.commandRun args
