@@ -1,11 +1,15 @@
 app "command"
     packages { pf: "../src/main.roc" }
-    imports [pf.Stderr, pf.Stdout, pf.Command, pf.Path, pf.Task.{ await }, pf.Process]
+    imports [pf.Stderr, pf.Stdout, pf.Command, pf.Task.{ await }, pf.Process]
     provides [main] to pf
 
 
 main =
-    cmd = Command.withArgs "ls" [ "-al" ]
+    cmd = Command.create  
+        { 
+            name: "ls", 
+            args:  [ "-al" ] 
+        }
 
     Task.attempt (Command.run cmd) \result -> 
         when result is
@@ -15,9 +19,5 @@ main =
 
             Err (SpawnFailed err) -> 
                 Stderr.line err
-
-# Str.concat "Cmd: " ( Command.display cmd ) 
-#     |> Stdout.line
-
-    
+   
     
