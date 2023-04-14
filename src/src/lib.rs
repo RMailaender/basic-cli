@@ -735,8 +735,7 @@ pub extern "C" fn roc_fx_commandRun(
 ) -> RocResult<RocStr, RocStr> {
     let name = name.as_str().to_string();
 
-    let mut cmd = Command::new(name); //.args(args);
-
+    let mut cmd = Command::new(name);
     for arg in args {
         let arg = arg.as_str().to_string();
         cmd.arg(arg);
