@@ -15,6 +15,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::path::Path;
+use std::process::Command;
 use std::time::Duration;
 
 use file_glue::ReadErr;
@@ -725,4 +726,28 @@ fn to_tcp_stream_err(err: std::io::Error) -> tcp_glue::StreamErr {
             err.raw_os_error().unwrap_or_default(),
         ),
     }
+}
+//  RocList<RocStr>
+
+#[no_mangle]
+pub extern "C" fn roc_fx_commandSpawn(
+    cmdName: &RocStr,
+    args: &RocList<RocStr>,
+) -> RocResult<RocStr, RocStr> {
+    let mut cmd = Command::new(cmdName.as_str().to_string());
+
+    match cmd.spawn() {
+        Ok(_) => RocResult::ok(RocStr::from("a child has spawn.")),
+        Err(_) => RocResult::err(RocStr::from("an error")),
+    }
+
+    // let output = Command::new("roc")
+    //     .arg("build")
+    //     .arg(string)
+    //     .output()
+    //     .expect("failed to execute process");
+
+    // println!("Status: {}", output.status);
+    // println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    // println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 }
