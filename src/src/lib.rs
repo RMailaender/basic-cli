@@ -730,7 +730,7 @@ fn to_tcp_stream_err(err: std::io::Error) -> tcp_glue::StreamErr {
 //  RocList<RocStr>
 
 #[no_mangle]
-pub extern "C" fn roc_fx_commandSpawn(
+pub extern "C" fn roc_fx_cmdSpawn(
     cmdName: &RocStr,
     args: &RocList<RocStr>,
 ) -> RocResult<RocStr, RocStr> {
