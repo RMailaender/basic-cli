@@ -5,15 +5,12 @@ app "command"
 
 
 main =
-    cmd = Command.withArgs 
-        ( Path.fromStr "ls" )
-        [
-            Command.arg "-a"
-        ]
-    Task.attempt (Command.spawn cmd) \result -> 
+    cmd = Command.withArgs "ls" [ "-al" ]
+
+    Task.attempt (Command.run cmd) \result -> 
         when result is
             Ok s -> 
-                # Stdout.line s
+                _ <- await (Stdout.line s)
                 Process.exit 0
 
             Err (SpawnFailed err) -> 

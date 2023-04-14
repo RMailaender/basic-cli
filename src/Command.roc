@@ -4,15 +4,12 @@ interface Command
         withDefault,
         withArgs, 
         display,
-        arg,
-        argToStr,
-        spawn,
+        run,
     ] 
     imports [
-        Path.{ Path },
         Effect.{ Effect },
         Task.{ Task },
-        InternalTask
+        InternalTask,
     ]
 
 # path 
@@ -20,37 +17,26 @@ interface Command
 Arg := Str
 
 Command : { 
-    cmdPath: Path,
-    args: List Arg,
+    cmdPath: Str,
+    args: List Str,
 }
 
-withDefault : Path -> Command
+withDefault : Str -> Command
 withDefault = \cmdPath -> { cmdPath, args : []}
 
-withArgs : Path, List Arg -> Command
-withArgs = \cmdPath, args ->{ 
+withArgs : Str, List Str -> Command
+withArgs = \cmdPath, args -> { 
     cmdPath, 
     args,
 }
 
 display : Command -> Str
 display = \{ cmdPath, args } -> 
-    List.map args argToStr
-        |> List.walk (Path.display cmdPath) (\state, elem -> "\(state) \(elem)")
+    List.walk args (cmdPath) (\state, elem -> "\(state) \(elem)")
 
-
-arg : Str -> Arg
-arg = @Arg
-
-argToStr : Arg -> Str
-argToStr = \@Arg argument -> 
-    argument
-
-spawn : Command -> Task Str [SpawnFailed Str]
-spawn = \{ cmdPath } ->  
+run : Command -> Task Str [SpawnFailed Str]
+run = \{ cmdPath,args } ->  
     cmdPath
-    |> Path.display
-    |> Effect.cmdSpawn []
-    #|> Effect.map Ok
+    |> Effect.commandRun args
     |> InternalTask.fromEffect
     |> Task.mapFail \err -> SpawnFailed err

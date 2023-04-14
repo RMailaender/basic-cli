@@ -727,27 +727,48 @@ fn to_tcp_stream_err(err: std::io::Error) -> tcp_glue::StreamErr {
         ),
     }
 }
-//  RocList<RocStr>
 
 #[no_mangle]
-pub extern "C" fn roc_fx_cmdSpawn(
-    cmdName: &RocStr,
+pub extern "C" fn roc_fx_commandRun(
+    name: &RocStr,
     args: &RocList<RocStr>,
 ) -> RocResult<RocStr, RocStr> {
-    let mut cmd = Command::new(cmdName.as_str().to_string());
+    let name = name.as_str().to_string();
 
-    match cmd.spawn() {
-        Ok(_) => RocResult::ok(RocStr::from("a child has spawn.")),
-        Err(_) => RocResult::err(RocStr::from("an error")),
+    let mut cmd = Command::new(name); //.args(args);
+
+    for arg in args {
+        let arg = arg.as_str().to_string();
+        cmd.arg(arg);
     }
 
-    // let output = Command::new("roc")
-    //     .arg("build")
-    //     .arg(string)
-    //     .output()
-    //     .expect("failed to execute process");
+    match cmd.output() {
+        Ok(out) => {
+            if out.status.success() {
+                let str = String::from_utf8(out.stdout.clone()).unwrap();
+                RocResult::ok(RocStr::from(str.as_str()))
+            } else {
+                let str = String::from_utf8(out.stderr.clone()).unwrap();
+                RocResult::err(RocStr::from(str.as_str()))
+            }
+        }
+        Err(err) => RocResult::err(to_command_run_err(err)),
+    }
+}
 
-    // println!("Status: {}", output.status);
-    // println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-    // println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+fn to_command_run_err(err: std::io::Error) -> RocStr {
+    let kind = err.kind();
+    let error_str = match kind {
+        ErrorKind::NotFound => "not found",
+        ErrorKind::PermissionDenied => "permission denied",
+        ErrorKind::TimedOut => "time out",
+        ErrorKind::BrokenPipe => "broken pipe",
+        ErrorKind::InvalidInput => "invalid input",
+        ErrorKind::Interrupted => "interrupted",
+        ErrorKind::Unsupported => "unsupported",
+        ErrorKind::OutOfMemory => "out of memory",
+        _ => "unrecognized error",
+    };
+
+    RocStr::from(error_str)
 }

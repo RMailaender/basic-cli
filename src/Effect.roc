@@ -30,7 +30,7 @@ hosted Effect
         tcpReadExactly,
         tcpReadUntil,
         tcpWrite,
-        cmdSpawn
+        commandRun
     ]
     imports [InternalHttp.{ Request, Response }, InternalFile, InternalDir, InternalTcp]
     generates Effect with [after, map, always, forever, loop]
@@ -68,4 +68,4 @@ tcpReadExactly : Nat, InternalTcp.Stream -> Effect InternalTcp.ReadExactlyResult
 tcpReadUntil : U8, InternalTcp.Stream -> Effect InternalTcp.ReadResult
 tcpWrite : List U8, InternalTcp.Stream -> Effect InternalTcp.WriteResult
 
-cmdSpawn : Str, List Str -> Effect ( Result Str Str )
+commandRun : Str, List Str -> Effect ( Result Str Str )
