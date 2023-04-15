@@ -13,3 +13,11 @@ RunErr : [
     OutOfMemory,
     Unrecognized I32 Str,
 ]
+
+ProcessOutput : {
+    status: [Success, Errored],
+    stdout: List U8,
+    stderr: List U8,
+}
+
+RunResult : [ Ok ProcessOutput, Err RunErr ]
