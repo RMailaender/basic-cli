@@ -54,9 +54,19 @@ display : Command -> Str
 display = \@Command{ name, args } -> 
     List.walk args (name) (\state, elem -> "\(state) \(elem)")
 
-run : Command -> Task (List U8) [SpawnFailed (List U8)]
+run : Command -> Task Str [SpawnFailed Str, StdoutDecodingFailed]
 run = \@Command{ name,args } ->  
     name
     |> Effect.commandRun args
     |> InternalTask.fromEffect
-    |> Task.mapFail \err -> SpawnFailed err
+    |> Task.attempt \result ->
+        when result is
+            Ok bytes -> 
+                when Str.fromUtf8 bytes is 
+                    Ok str -> Task.succeed str
+                    Err _ -> Task.fail StdoutDecodingFailed 
+
+            Err bytes -> 
+                str = Str.fromUtf8 bytes |> Result.withDefault "unknown"
+                Task.fail (SpawnFailed str)
+        

@@ -3,32 +3,32 @@ app "command"
     imports [pf.Stderr, pf.Stdout, pf.Command, pf.Task.{ await }, pf.Process]
     provides [main] to pf
 
+grepEcho = \text ->
+    Command.run (Command.create { name: "grep", args: [ "-l", "Exampl", "README.md"]})
 
 main =
     cmd = Command.create  
         { 
-            name: "ls", 
-            args:  [ "-al" ] 
+            name: "ls",
         }
 
-    okStr : List U8 -> Str
-    okStr = \bytes ->
-        when Str.fromUtf8 bytes is 
-            Ok str -> 
-                str
+    
+    task = 
+        text <- await (Command.run cmd)
+        lsa <- await ( Command.run (Command.create { name: "ls", args: [ "-al" ] }) )
+        _ <- await (Stdout.line lsa)
+        grepEcho text
 
-            Err _ -> 
-                "Invalid bytes"
-
-    Task.attempt (Command.run cmd) \result -> 
+    Task.attempt task \result -> 
         when result is
-            Ok bytes ->
-                str = okStr bytes
+            Ok str ->
                 _ <- await (Stdout.line str)
                 Process.exit 0
 
             Err (SpawnFailed err) -> 
-                str = Str.fromUtf8 err |> Result.withDefault "gnark"
-                Stderr.line str
+                Stderr.line (Str.concat "Error: " err)
+
+            Err (StdoutDecodingFailed) ->
+                Stderr.line "Error: docing failed"
    
     
